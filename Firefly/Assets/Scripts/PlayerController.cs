@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.CompilerServices;
+using UnityEngine;
 
 [SelectionBase, RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
@@ -9,9 +10,10 @@ public class PlayerController : MonoBehaviour
 	[SerializeField, Tooltip("Top speed of the player on horizontal axis. \nChanging the value drastically during play mode may cause issues with deceleration.")] private float topSpeed = 1f;
 	[SerializeField, Tooltip("Amount of acceleration applied per second. \nUseless for Instant acceleration mode.")] private float acceleration = 1f;
 	[Header("Jumping")]
-	[SerializeField, Tooltip("Game gravity")] private float gravity = 10f;
-	[SerializeField, Tooltip("Amount of force applied to the player on jump.")] private float jumpForce = 1f;
-	[SerializeField, Tooltip("Amount of performable jumps that the player can use before needing to land. \nSet to 1 for disabling mid-air jumps.")] private int maximumJumps = 1;
+	[SerializeField, Tooltip("The way in which upwards input will be read.")] private JumpMode jumpMode = JumpMode.Jump;
+	[SerializeField, Tooltip("Game gravity multiplier. Set to 1 for standard gravity.")] private float gravity = 10f;
+	[SerializeField, Tooltip("Amount of force applied to the player per jump mode.")] private float flightForce = 1f;
+	[SerializeField, Tooltip("Amount of performable jumps that the player can use before needing to land. \nSet to 1 for disabling mid-air jumps. \nUseless for Flight Mode.")] private int maximumJumps = 1;
 
 	[Header("References")]
 	[SerializeField] new private Rigidbody2D rigidbody;
@@ -46,7 +48,7 @@ public class PlayerController : MonoBehaviour
 	{
 		horizontalInput = Input.GetAxisRaw("Horizontal");
 
-		if (availableJumps > 0 && Input.GetKeyDown(KeyCode.Space))
+		if (availableJumps > 0 && Input.GetKey(KeyCode.Space))
 		{
 			jumpIntent = true;
 		}
@@ -93,9 +95,17 @@ public class PlayerController : MonoBehaviour
 	
 	private void Jump()
 	{
-		rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0f);
-		rigidbody.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-		availableJumps--;		
+		if (jumpMode == JumpMode.Jump)
+		{
+			rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0f);
+			rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Impulse);
+			availableJumps--;		
+		}
+		else
+		{
+			rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Force);
+			//IMPLEMENT FUEL SYSTEM!!!!
+		}
 	}
 
 	private void OnTriggerEnter2D(Collider2D collision)	/// Ground check.
