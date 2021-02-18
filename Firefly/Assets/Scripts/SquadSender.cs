@@ -1,6 +1,5 @@
 using Pathfinding;
 using System.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 
@@ -47,19 +46,23 @@ public class SquadSender : MonoBehaviour
 	{
 		if (canCollect && !collectedThisFrame && collision.CompareTag("Squad"))
 		{
-			squadCount += SQUAD_COST;
-			lightIntensity++;
-			StartCoroutine(CollectCooldown());
+			Debug.Log($"Hit a squad, at time: {Time.time}, with a vleocity of: {GetComponent<Rigidbody2D>().velocity.magnitude}");
 			CollectFirefly(collision);
+			squadCount += SQUAD_COST;
 			UpdateGraphics();
+			lightIntensity++;
+			if (squadCount == MAXIMUM_SQUADS)
+				print("---- RESET ----");
+			StartCoroutine(CollectCooldown());		
 		}
 	}
 
-	private IEnumerator CollectCooldown()
+	private IEnumerator CollectCooldown()	// DOES NOT WORK, FIX THE PIECE OF SHIT!!!
 	{
 		collectedThisFrame = true;
 		yield return new WaitForFixedUpdate();
 		collectedThisFrame = false;
+		yield return null;
 	}
 	private IEnumerator SpawnGracePeriod()
 	{

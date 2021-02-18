@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
 	[SerializeField, Tooltip("Top speed of the player on horizontal axis. \nChanging the value drastically during play mode may cause issues with deceleration.")] private float topSpeed = 1f;
 	[SerializeField, Tooltip("Amount of acceleration applied per second. \nUseless for Instant acceleration mode.")] private float acceleration = 1f;
 	[Header("Jumping")]
+	[SerializeField, Tooltip("Game gravity")] private float gravity = 10f;
 	[SerializeField, Tooltip("Amount of force applied to the player on jump.")] private float jumpForce = 1f;
 	[SerializeField, Tooltip("Amount of performable jumps that the player can use before needing to land. \nSet to 1 for disabling mid-air jumps.")] private int maximumJumps = 1;
 
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
 
 	private void Start()
 	{
+		Physics2D.gravity = new Vector2(0f, -9.81f * gravity);
 		if (accelerationMode == AccelerationMode.Instant)
 		{
 			forceMode = ForceMode2D.Impulse;
