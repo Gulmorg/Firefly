@@ -13,11 +13,16 @@ public class PlayerController : MonoBehaviour
 	[SerializeField, Tooltip("The way in which upwards input will be read.")] private JumpMode jumpMode = JumpMode.Jump;
 	[SerializeField, Tooltip("Game gravity multiplier. Set to 1 for standard gravity.")] private float gravity = 10f;
 	[SerializeField, Tooltip("Amount of force applied to the player per jump mode.")] private float flightForce = 1f;
+	[SerializeField, Tooltip("Amount of \"fuel\" drained per second.")] private float fuelDrain = 50f;
+	[SerializeField, Tooltip("Amount of \"fuel\" replenished per second.")] private float fuelReplenish = 50f;
 	[SerializeField, Tooltip("Amount of performable jumps that the player can use before needing to land. \nSet to 1 for disabling mid-air jumps. \nUseless for Flight Mode.")] private int maximumJumps = 1;
 
 	[Header("References")]
 	[SerializeField] new private Rigidbody2D rigidbody;
-	
+
+	public float Fuel => fuel;
+
+	private float fuel = 100;
 	private float horizontalInput;
 	private bool jumpIntent;
 	private int availableJumps;
@@ -48,9 +53,19 @@ public class PlayerController : MonoBehaviour
 	{
 		horizontalInput = Input.GetAxisRaw("Horizontal");
 
-		if (availableJumps > 0 && Input.GetKey(KeyCode.Space))
+		if (jumpMode == JumpMode.Jump && availableJumps > 0 && Input.GetKeyDown(KeyCode.Space))
 		{
 			jumpIntent = true;
+		}
+		else if (jumpMode == JumpMode.Flight && fuel > 0 && Input.GetKey(KeyCode.Space))
+		{
+			jumpIntent = true;
+			
+			fuel -= fuelDrain * Time.deltaTime;
+		}
+		else if (jumpMode == JumpMode.Flight && fuel < 100)
+		{
+			fuel += fuelReplenish * Time.deltaTime;
 		}
 	}
 
