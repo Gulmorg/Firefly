@@ -32,7 +32,7 @@ public class SquadSender : MonoBehaviour
 
 	private void Update()
 	{
-		if (Input.GetMouseButtonDown(0) && squadCount > 0)
+		if (Input.GetMouseButtonDown(0) && squadCount > 0 && !GameMenuController.IsPaused)
 		{
 			var tempFuel = squadCount;
 			squadCount -= SQUAD_COST;
@@ -58,12 +58,11 @@ public class SquadSender : MonoBehaviour
 		}
 	}
 
-	private IEnumerator CollectCooldown()	// DOES NOT WORK, FIX THE PIECE OF SHIT!!!
+	private IEnumerator CollectCooldown()   // DOES NOT WORK, FIX THE PIECE OF SHIT!!!
 	{
 		collectedThisFrame = true;
 		yield return new WaitForFixedUpdate();
 		collectedThisFrame = false;
-		yield return null;
 	}
 	private IEnumerator SpawnGracePeriod()
 	{
