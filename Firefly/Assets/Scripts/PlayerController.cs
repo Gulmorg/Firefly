@@ -10,22 +10,24 @@ public class PlayerController : MonoBehaviour
 	[SerializeField, Tooltip("Top speed of the player on horizontal axis. \nChanging the value drastically during play mode may cause issues with deceleration.")] private float topSpeed = 1f;
 	[SerializeField, Tooltip("Amount of acceleration applied per second. \nUseless for Instant acceleration mode.")] private float acceleration = 1f;
 	[Header("Jumping")]
-	[SerializeField, Tooltip("The way in which upwards input will be read.")] private JumpMode jumpMode = JumpMode.Jump;
+	[SerializeField, Tooltip("The way in which upwards input will be read. \n JUMP MODE IS DISABLED, DO NOT CHANGE FROM FLIGHT!")] private JumpMode jumpMode = JumpMode.Jump;
 	[SerializeField, Tooltip("Game gravity multiplier. Set to 1 for standard gravity.")] private float gravity = 10f;
 	[SerializeField, Tooltip("Amount of force applied to the player per jump mode.")] private float flightForce = 1f;
+	[SerializeField, Tooltip("Amount of fuel players have in their resevoir.")] private float maximumFuel = 100f;
 	[SerializeField, Tooltip("Amount of \"fuel\" drained per second.")] private float fuelDrain = 50f;
 	[SerializeField, Tooltip("Amount of \"fuel\" replenished per second.")] private float fuelReplenish = 50f;
-	[SerializeField, Tooltip("Amount of performable jumps that the player can use before needing to land. \nSet to 1 for disabling mid-air jumps. \nUseless for Flight Mode.")] private int maximumJumps = 1;
+	[SerializeField, Tooltip("Amount of performable jumps that the player can use before needing to land. \nSet to 1 for disabling mid-air jumps. \nUseless for flight mode.")] private int maximumJumps = 1;
 
 	[Header("References")]
 	[SerializeField] new private Rigidbody2D rigidbody;
 
 	public float Fuel => fuel;
 
-	private float fuel = 100;
+	private float fuel;
 	private float horizontalInput;
-	private bool jumpIntent;
-	private int availableJumps;
+	//private bool jumpIntent;
+	private bool flightIntent;
+	//private int availableJumps;
 	private float lastFrameVelocity;
 	private float minimumSpeed;
 	private ForceMode2D forceMode;
@@ -34,50 +36,74 @@ public class PlayerController : MonoBehaviour
 	private void Start()
 	{
 		Physics2D.gravity = new Vector2(0f, -9.81f * gravity);
-		if (accelerationMode == AccelerationMode.Instant)
+		switch (accelerationMode)
 		{
-			forceMode = ForceMode2D.Impulse;
-			acceleration = topSpeed;
-			minimumSpeed = topSpeed / 2;
-		}
-		else
-		{
-			forceMode = ForceMode2D.Force;
-			minimumSpeed = topSpeed / 10;
+			case AccelerationMode.Instant:
+				forceMode = ForceMode2D.Impulse;
+				acceleration = topSpeed;
+				minimumSpeed = topSpeed / 2;
+				break;
+			default:
+				forceMode = ForceMode2D.Force;
+				minimumSpeed = topSpeed / 10;
+				break;
 		}
 
-		availableJumps = maximumJumps;
+		//switch (jumpMode)
+		//{
+			//case JumpMode.Jump:
+			//	availableJumps = maximumJumps;
+			//	break;
+			//case JumpMode.Flight:
+				fuel = maximumFuel;
+		//		break;
+		//}
+		
 	}
 
 	private void Update()
 	{
 		horizontalInput = Input.GetAxisRaw("Horizontal");
 
-		if (jumpMode == JumpMode.Jump && availableJumps > 0 && Input.GetKeyDown(KeyCode.Space))
-		{
-			jumpIntent = true;
-		}
-		else if (jumpMode == JumpMode.Flight && fuel > 0 && Input.GetKey(KeyCode.Space))
-		{
-			jumpIntent = true;
-			
-			fuel -= fuelDrain * Time.deltaTime;
-		}
-		else if (jumpMode == JumpMode.Flight && fuel < 100)
-		{
-			fuel += fuelReplenish * Time.deltaTime;
-		}
+		//switch (jumpMode)
+		//{
+		//	case JumpMode.Jump:
+		//		if (availableJumps > 0 && Input.GetKeyDown(KeyCode.Space))
+		//		{
+		//			jumpIntent = true;
+		//		}
+		//		break;
+		//	case JumpMode.Flight:
+				if (fuel > 10 && Input.GetKeyDown(KeyCode.Space))
+				{
+					flightIntent = true;
+				}
+				if (Input.GetKeyUp(KeyCode.Space) || fuel <= 0)
+				{
+					flightIntent = false;
+				}				
+		//		break;
+		//}
 	}
 
 	private void FixedUpdate()
 	{
 		Move();
-
-		if (jumpIntent)
+		
+		if (flightIntent)
 		{
-			jumpIntent = false;
-			Jump();
+			fuel -= fuelDrain * Time.deltaTime;
+			Fly();
 		}
+		else if (fuel < 100)
+		{
+			fuel += fuelReplenish * Time.deltaTime;
+		}
+		//if (jumpIntent)
+		//{
+		//	jumpIntent = false;
+		//	Jump();
+		//}
 	}
 
 	private void Move()
@@ -108,26 +134,34 @@ public class PlayerController : MonoBehaviour
 		lastFrameVelocity = rigidbody.velocity.x;
 	}
 	
-	private void Jump()
+	//private void Jump()
+	//{
+	//	if (jumpMode == JumpMode.Jump)
+	//	{
+	//		rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0f);
+	//		rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Impulse);
+	//		availableJumps--;		
+	//	}
+	//	else if (fuel > 10)
+	//	{
+			
+	//	}
+	//}
+	private void Fly()
 	{
-		if (jumpMode == JumpMode.Jump)
-		{
-			rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0f);
-			rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Impulse);
-			availableJumps--;		
-		}
-		else
-		{
-			rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Force);
-			//IMPLEMENT FUEL SYSTEM!!!!
-		}
+		rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Force);
 	}
 
-	private void OnTriggerEnter2D(Collider2D collision)	/// Ground check.
+	private void OnTriggerEnter2D(Collider2D collision)
 	{
-		if (collision.CompareTag("Ground"))
+		//if (collision.CompareTag("Ground"))
+		//{
+		//	availableJumps = maximumJumps;
+		//}
+
+		if (collision.CompareTag("FinishTag"))
 		{
-			availableJumps = maximumJumps;
+			print("YOU WIN!");
 		}
 	}
 }
