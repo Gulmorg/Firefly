@@ -10,9 +10,9 @@ public class PlayerController : MonoBehaviour
 	[SerializeField, Tooltip("Top speed of the player on horizontal axis. \nChanging the value drastically during play mode may cause issues with deceleration.")] private float topSpeed = 1f;
 	[SerializeField, Tooltip("Amount of acceleration applied per second. \nUseless for Instant acceleration mode.")] private float acceleration = 1f;
 	[Header("Jumping")]
-	[SerializeField, Tooltip("The way in which upwards input will be read. \n JUMP MODE IS DISABLED, DO NOT CHANGE FROM FLIGHT!")] private JumpMode jumpMode = JumpMode.Jump;
+	[SerializeField, Tooltip("The way in which upwards input will be read.")] private JumpMode jumpMode = JumpMode.Jump;
 	[SerializeField, Tooltip("Game gravity multiplier. Set to 1 for standard gravity.")] private float gravity = 10f;
-	[SerializeField, Tooltip("Amount of force applied to the player per jump mode.")] private float flightForce = 1f;
+	[SerializeField, Tooltip("Amount of force applied to the player per jump mode.")] private float upwardsForce = 1f;
 	[SerializeField, Tooltip("Amount of fuel players have in their resevoir.")] private float maximumFuel = 100f;
 	[SerializeField, Tooltip("Amount of \"fuel\" drained per second.")] private float fuelDrain = 50f;
 	[SerializeField, Tooltip("Amount of \"fuel\" replenished per second.")] private float fuelReplenish = 50f;
@@ -20,20 +20,21 @@ public class PlayerController : MonoBehaviour
 
 	[Header("References")]
 	[SerializeField] new private Rigidbody2D rigidbody;
+	[SerializeField] private UIManager uiManager;
 
 	public float Fuel => fuel;
 
 	private float fuel;
 	private float horizontalInput;
-	//private bool jumpIntent;
+	private bool jumpIntent;
 	private bool flightIntent;
-	//private int availableJumps;
+	private int availableJumps;
 	private float lastFrameVelocity;
 	private float minimumSpeed;
 	private ForceMode2D forceMode;
 	#endregion
 
-	private void Start()
+	private void Awake()
 	{
 		Physics2D.gravity = new Vector2(0f, -9.81f * gravity);
 		switch (accelerationMode)
@@ -49,31 +50,32 @@ public class PlayerController : MonoBehaviour
 				break;
 		}
 
-		//switch (jumpMode)
-		//{
-			//case JumpMode.Jump:
-			//	availableJumps = maximumJumps;
-			//	break;
-			//case JumpMode.Flight:
+		switch (jumpMode)
+		{
+			case JumpMode.Jump:
+				availableJumps = maximumJumps;
+				break;
+			case JumpMode.Flight:
 				fuel = maximumFuel;
-		//		break;
-		//}
-		
+				upwardsForce *= 2;
+				break;
+		}
+
 	}
 
 	private void Update()
 	{
 		horizontalInput = Input.GetAxisRaw("Horizontal");
 
-		//switch (jumpMode)
-		//{
-		//	case JumpMode.Jump:
-		//		if (availableJumps > 0 && Input.GetKeyDown(KeyCode.Space))
-		//		{
-		//			jumpIntent = true;
-		//		}
-		//		break;
-		//	case JumpMode.Flight:
+		switch (jumpMode)
+		{
+			case JumpMode.Jump:
+				if (availableJumps > 0 && Input.GetKeyDown(KeyCode.Space))
+				{
+					jumpIntent = true;
+				}
+				break;
+			case JumpMode.Flight:
 				if (fuel > 10 && Input.GetKeyDown(KeyCode.Space))
 				{
 					flightIntent = true;
@@ -81,9 +83,9 @@ public class PlayerController : MonoBehaviour
 				if (Input.GetKeyUp(KeyCode.Space) || fuel <= 0)
 				{
 					flightIntent = false;
-				}				
-		//		break;
-		//}
+				}
+				break;
+		}
 	}
 
 	private void FixedUpdate()
@@ -99,11 +101,11 @@ public class PlayerController : MonoBehaviour
 		{
 			fuel += fuelReplenish * Time.deltaTime;
 		}
-		//if (jumpIntent)
-		//{
-		//	jumpIntent = false;
-		//	Jump();
-		//}
+		if (jumpIntent)
+		{
+			jumpIntent = false;
+			Jump();
+		}
 	}
 
 	private void Move()
@@ -133,35 +135,72 @@ public class PlayerController : MonoBehaviour
 		}
 		lastFrameVelocity = rigidbody.velocity.x;
 	}
-	
-	//private void Jump()
-	//{
-	//	if (jumpMode == JumpMode.Jump)
-	//	{
-	//		rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0f);
-	//		rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Impulse);
-	//		availableJumps--;		
-	//	}
-	//	else if (fuel > 10)
-	//	{
-			
-	//	}
-	//}
+
+	private void Jump()
+	{
+		rigidbody.velocity = new Vector2(rigidbody.velocity.x, 0f);
+		rigidbody.AddForce(Vector2.up * upwardsForce, ForceMode2D.Impulse);
+		availableJumps--;
+	}
 	private void Fly()
 	{
-		rigidbody.AddForce(Vector2.up * flightForce, ForceMode2D.Force);
+		rigidbody.AddForce(Vector2.up * upwardsForce, ForceMode2D.Force);
 	}
 
 	private void OnTriggerEnter2D(Collider2D collision)
 	{
-		//if (collision.CompareTag("Ground"))
-		//{
-		//	availableJumps = maximumJumps;
-		//}
-
+		if (collision.CompareTag("Ground"))
+		{
+			availableJumps = maximumJumps;
+		}
+		
 		if (collision.CompareTag("FinishTag"))
 		{
-			print("YOU WIN!");
+			uiManager.instance.ActivateEndgameWindow();
+		}
+		else if (collision.CompareTag("Shuttle"))
+		{
+			uiManager.instance.ActivateLore(0);
+		}
+		else if (collision.CompareTag("Helmet"))
+		{
+			uiManager.instance.ActivateLore(1);
+		}
+		else if (collision.CompareTag("Potato"))
+		{
+			uiManager.instance.ActivateLore(2);
+		}
+		else if (collision.CompareTag("Parchment"))
+		{
+			uiManager.instance.ActivateLore(3);
+		}
+		else if (collision.CompareTag("Stone"))
+		{
+			uiManager.instance.ActivateLore(4);
+		}
+	}
+
+	private void OnTriggerExit2D(Collider2D collision)
+	{
+		if (collision.CompareTag("Shuttle"))
+		{
+			uiManager.instance.DeactivateLore();
+		}
+		else if (collision.CompareTag("Helmet"))
+		{
+			uiManager.instance.DeactivateLore();
+		}
+		else if (collision.CompareTag("Potato"))
+		{
+			uiManager.instance.DeactivateLore();
+		}
+		else if (collision.CompareTag("Parchment"))
+		{
+			uiManager.instance.DeactivateLore();
+		}
+		else if (collision.CompareTag("Stone"))
+		{
+			uiManager.instance.DeactivateLore();
 		}
 	}
 }

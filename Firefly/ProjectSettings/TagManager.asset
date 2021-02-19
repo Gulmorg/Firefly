@@ -8,6 +8,11 @@ TagManager:
   - PlayerMain
   - Squad
   - FinishTag
+  - Shuttle
+  - Helmet
+  - Potato
+  - Parchment
+  - Stone
   layers:
   - Default
   - TransparentFX
@@ -18,7 +23,7 @@ TagManager:
   - Ground
   - Scout
   - Player
-  - 
+  - Radioactive
   - 
   - 
   - 
@@ -53,6 +58,9 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 2643373285
+    locked: 0
+  - name: Objects
+    uniqueID: 3566846461
     locked: 0
   - name: Foreground
     uniqueID: 2046982657

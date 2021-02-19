@@ -32,7 +32,7 @@ public class SquadSender : MonoBehaviour
 
 	private void Update()
 	{
-		if (Input.GetMouseButtonDown(0) && squadCount > 0 && !GameMenuController.IsPaused)
+		if (Input.GetMouseButtonDown(0) && squadCount > 0)
 		{
 			var tempFuel = squadCount;
 			squadCount -= SQUAD_COST;
@@ -43,27 +43,25 @@ public class SquadSender : MonoBehaviour
 		}
 	}
 
-	private void OnTriggerEnter2D(Collider2D collision)	// FIX DOUBLE TRIGGERS!!!
+	private void OnTriggerEnter2D(Collider2D collision)
 	{
 		if (canCollect && !collectedThisFrame && collision.CompareTag("Squad"))
 		{
-			Debug.Log($"Hit a squad, at time: {Time.time}, with a vleocity of: {GetComponent<Rigidbody2D>().velocity.magnitude}");
 			CollectFirefly(collision);
 			squadCount += SQUAD_COST;
 			UpdateGraphics();
 			lightIntensity++;
-			if (squadCount == MAXIMUM_SQUADS)
-				print("---- RESET ----");
 			StartCoroutine(CollectCooldown());		
 		}
 	}
 
-	private IEnumerator CollectCooldown()   // DOES NOT WORK, FIX THE PIECE OF SHIT!!!
+	private IEnumerator CollectCooldown()   // This is meh. If the player wants to collect two different fireflies in one frame, they will be disappointed :(
 	{
 		collectedThisFrame = true;
 		yield return new WaitForFixedUpdate();
 		collectedThisFrame = false;
 	}
+
 	private IEnumerator SpawnGracePeriod()
 	{
 		canCollect = false;
@@ -77,6 +75,7 @@ public class SquadSender : MonoBehaviour
 		var squad = Instantiate(squadPrefab, transform.position, Quaternion.identity);
 		squad.GetComponent<AIDestinationSetter>().target = target.transform;
 	}
+
 	private void CollectFirefly(Collider2D collision)
 	{
 		Destroy(collision.GetComponent<AIDestinationSetter>().target.gameObject);

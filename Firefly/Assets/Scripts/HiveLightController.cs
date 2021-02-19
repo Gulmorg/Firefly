@@ -13,12 +13,29 @@ public class HiveLightController : MonoBehaviour
 	[SerializeField] private float wiggleSpeed = 1f;
 
 	[Header("References")]
-	[SerializeField] private Transform hiveLight;
+	[SerializeField] private Transform hiveLightTransform;
+	[SerializeField] private Light2D hiveLight;
+	[SerializeField] private PlayerController playerController;
 
 	private float wiggleCounter;
+	private float multiplier;
 	#endregion
 
+
+	private void Start()
+	{
+		var maxRadius = hiveLight.pointLightOuterRadius;
+		multiplier = playerController.Fuel / maxRadius;
+	}
+
 	private void Update()
+	{
+		hiveLight.pointLightOuterRadius = playerController.Fuel / multiplier; // f == 100  r == 7.5 ~ f == 50 r == 3.75
+
+		WiggleAround();
+	}
+
+	private void WiggleAround()
 	{
 		wiggleCounter -= Time.deltaTime;
 		if (wiggleCounter > 0)
@@ -34,15 +51,16 @@ public class HiveLightController : MonoBehaviour
 			targetPos.x = Random.Range(-wiggleRange, wiggleRange);
 			targetPos.y = Random.Range(-wiggleRange, wiggleRange);
 		}
-		while (Vector2.Distance(hiveLight.position, targetPos) < minimumTravel && ++iteration < 100);
+		while (Vector2.Distance(hiveLightTransform.position, targetPos) < minimumTravel && ++iteration < 100);
 
 		StartCoroutine(MoveToNewPosition(targetPos));
 	}
+
 	private IEnumerator MoveToNewPosition(Vector2 target)
 	{
 		while (wiggleCounter > 0)
 		{
-			hiveLight.Translate((target - (Vector2) hiveLight.localPosition).normalized * wiggleSpeed * Time.deltaTime);
+			hiveLightTransform.Translate((target - (Vector2) hiveLightTransform.localPosition).normalized * wiggleSpeed * Time.deltaTime);
 			wiggleCounter -= Time.deltaTime;
 			yield return null;
 		}
