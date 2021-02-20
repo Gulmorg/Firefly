@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
 
 	[Header("References")]
 	[SerializeField] new private Rigidbody2D rigidbody;
-	[SerializeField] private UIManager uiManager;
+	[SerializeField] private UIManager uiManager;	// GET RID OF THIS GARBAGE DEPENDENCY (after the jam)
 
 	public float Fuel => fuel;
 

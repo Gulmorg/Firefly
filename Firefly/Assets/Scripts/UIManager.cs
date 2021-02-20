@@ -1,3 +1,4 @@
+using Assets.Scripts;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -15,6 +16,7 @@ public class UIManager : MonoBehaviour
 	#endregion
 
 	[SerializeField] private GameObject endgamePanel;
+	[SerializeField] private TextMeshProUGUI endgameText;
 	[SerializeField] private GameObject lorePanel;
 	[SerializeField] private TextMeshProUGUI loreText;
 
@@ -40,12 +42,26 @@ public class UIManager : MonoBehaviour
 	public void ActivateEndgameWindow()	// ADD FADE IN AND GAME FREEZE
 	{
 		Cursor.visible = true;
+		var unseenLore = 0;
+
+		foreach (var item in LoreManager.LoreSeen)
+		{
+			if (!item)
+			{
+				unseenLore++;
+			}
+		}
+
 		endgamePanel.SetActive(true);
+		
+
 	}
 
 	public void ActivateLore(int i = -1)
 	{
 		lorePanel.SetActive(true);
+		LoreManager.LoreSeen[i] = true;
+
 		switch (i)
 		{
 			case 0:
@@ -62,9 +78,6 @@ public class UIManager : MonoBehaviour
 				break;
 			case 4:
 				loreText.text = STONE_TEXT;
-				break;
-			default:
-				Debug.LogError("Unkown lore passed");
 				break;
 		}
 	}

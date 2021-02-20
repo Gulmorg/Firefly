@@ -1,8 +1,10 @@
 using Pathfinding;
 using System.Collections;
 using System.Reflection.Emit;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 public class SquadSender : MonoBehaviour
 {
@@ -26,6 +28,10 @@ public class SquadSender : MonoBehaviour
 
 	private void Start()
 	{
+		if (SceneManager.GetActiveScene().buildIndex == 0)
+		{
+			canCollect = true;
+		}
 		squadCount = MAXIMUM_SQUADS;
 		lightIntensity = hiveLight.intensity;
 	}
@@ -49,9 +55,17 @@ public class SquadSender : MonoBehaviour
 		{
 			CollectFirefly(collision);
 			squadCount += SQUAD_COST;
+			if (squadCount > MAXIMUM_SQUADS)
+			{
+				squadCount = MAXIMUM_SQUADS;
+			}
+			else
+			{
+				lightIntensity++;
+			}
+
 			UpdateGraphics();
-			lightIntensity++;
-			StartCoroutine(CollectCooldown());		
+			//StartCoroutine(CollectCooldown());		
 		}
 	}
 
