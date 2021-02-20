@@ -274,7 +274,7 @@ MonoBehaviour:
   repathRate: 0
   canSearch: 1
   canMove: 1
-  maxSpeed: 15
+  maxSpeed: 20
   gravity: {x: NaN, y: NaN, z: NaN}
   groundMask:
     serializedVersion: 2
@@ -283,7 +283,7 @@ MonoBehaviour:
   orientation: 1
   enableRotation: 0
   targetCompatibility: {fileID: 0}
-  maxAcceleration: -2.5
+  maxAcceleration: 100
   rotationSpeed: 360
   slowdownDistance: 0.6
   pickNextWaypointDist: 1.5

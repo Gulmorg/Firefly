@@ -1,7 +1,5 @@
 using Pathfinding;
 using System.Collections;
-using System.Reflection.Emit;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.SceneManagement;
@@ -87,6 +85,7 @@ public class SquadSender : MonoBehaviour
 	{
 		var target = Instantiate(targetPrefab, cursor.position, Quaternion.identity);
 		var squad = Instantiate(squadPrefab, transform.position, Quaternion.identity);
+		target.GetComponent<SquadTargetController>().followingSquad = squad.transform;
 		squad.GetComponent<AIDestinationSetter>().target = target.transform;
 	}
 
